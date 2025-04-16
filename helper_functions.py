@@ -1,8 +1,16 @@
+import csv
 from collections import namedtuple
 
 node_prop = namedtuple('node_prop',['id','x_coord','y_coord','z_coord'])
 element_prop = namedtuple('element_prop',['id', 'node_ids'])
 
+def is_number_p (item):
+    try:
+        result = float(item)
+    except ValueError:
+        result = 'NAN'
+    
+    return result != 'NAN'
 
 def read_from_inp(input_filename, list_of_nodes, list_of_elements):
     with open(input_filename) as file_data:
@@ -21,6 +29,24 @@ def read_from_inp(input_filename, list_of_nodes, list_of_elements):
                     list_of_elements.append(elmt)
 
     return list_of_nodes, list_of_elements
+
+def read_from_csv(input_filename, list_of_nodes, list_of_elements, delimiter=';'):
+    with open(input_filename) as cvsdatei:
+        cvs_reader_object = csv.reader(cvsdatei, delimiter=delimiter)
+        for row in cvs_reader_object:
+            filtered_list = list(filter(is_number_p,row))
+            if len(filtered_list) == 4:
+                node_id = int(filtered_list[0])
+                node_coords = list(map(float, filtered_list[1:]))
+                node = node_prop(node_id, *node_coords)
+                list_of_nodes.append(node)
+            elif len(filtered_list) == 9:
+                elmt_id, *lst_node_ids = map(int, filtered_list)
+                elmt = element_prop(elmt_id, lst_node_ids)
+                list_of_elements.append(elmt)
+            
+    return list_of_nodes, list_of_elements
+
 
 
 def read_from_dat(input_filename, list_of_nodes, list_of_elements):
